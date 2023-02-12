@@ -2,8 +2,10 @@
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <box2d/box2d.h>
 
 #include "Globals.h"
+#include "GameObject.hpp"
 
 enum Direction {
 	STOP,
@@ -13,10 +15,8 @@ enum Direction {
 	LEFT,
 };
 
-
-class Car {
+class Car : public GameObject {
 private:
-	sf::Sprite _sprite;
 	float _x, _y;
 	float _speed, _angle;
 	float _acc, _dec;
@@ -25,7 +25,8 @@ private:
 	void checkBorder();
 
 public:
-	Car(sf::Sprite sprite);
+
+	Car(sf::Sprite sprite, b2World& world);
 
 	void setDirection(Direction direction);
 
@@ -36,78 +37,146 @@ public:
 	float getAngle();
 	float getSpeed();
 	sf::Sprite getSprite();
+	Direction getDirection();
 
 	void setPosition(float x, float y);
+	void setSpeed(float speed);
 };
 
-inline void Car::checkBorder() {
-	if (_x >= SCREEN_WIDTH + CAR_SIDE) {
-		_x = _x - SCREEN_WIDTH - CAR_SIDE;
-	}
-
-	if (_x <= -CAR_SIDE) {
-		_x = _x + SCREEN_WIDTH + CAR_SIDE;
-	}
-}
-
-Car::Car(sf::Sprite sprite) {
+Car::Car(sf::Sprite sprite, b2World& world) {
 	_sprite = sprite;
 	_x = 60;
 	_y = 600;
 	_speed = _angle = 0;
-	_acc = 0.0002;
-	_dec = 0.0003;
+	_acc = 0.002;
+	_dec = 0.003;
 	_direction = STOP;
+
+	_shape.SetAsBox(CAR_SIDE / 2 / SCALE, CAR_SIDE / 2 / SCALE);
+	_bodyDef.type = b2_dynamicBody;
+	_bodyDef.position.Set(_x / SCALE, _y / SCALE);
+	_bodyDef.fixedRotation = true;
+	_body = world.CreateBody(&_bodyDef);
+	_body->CreateFixture(&_shape, 1);
+	//_body->GetAngle();
+	_sprite.setPosition(_x, _y);
+	_sprite.setRotation(_body->GetAngle()*DEG);
 }
 
 void Car::setDirection(Direction direction) {
 	_direction = direction;
 }
 
+inline void Car::checkBorder() {
+	if (_x >= SCREEN_WIDTH + CAR_SIDE) {
+		_x = _x - SCREEN_WIDTH - CAR_SIDE;
+		_body->SetTransform(b2Vec2(_x / SCALE, _y / SCALE), _body->GetAngle());
+	}
+
+	if (_x <= -CAR_SIDE) {
+		_x = _x + SCREEN_WIDTH + CAR_SIDE;
+		_body->SetTransform(b2Vec2(_x / SCALE, _y / SCALE), _body->GetAngle());
+	}
+}
+
 void Car::Update() {
-	if (_direction == UP && _speed < MAX_SPEED) {
-		if (_speed < 0) {
-			_speed += _dec;
+	b2Vec2 velocity = _body->GetLinearVelocity();
+
+	std::cout << _body->GetAngle() * DEG << "\n";
+
+	if (_body->GetAngle() > 360 / DEG || _body->GetAngle() < -360 / DEG) {
+		_body->SetTransform(_body->GetPosition(), 0);
+	}
+
+	if (_direction == UP && velocity.y < MAX_SPEED / SCALE) {
+
+		/// UP ///
+		if (_body->GetAngle() < 45 / DEG && _body->GetAngle() > -45 / DEG) {
+			velocity.x = 0;
+			velocity.y -= _acc;
+			velocity.x = velocity.x * cos(_body->GetAngle()) - velocity.y * sin(_body->GetAngle());
 		}
-		else {
-			_speed += _acc;
+
+		/// DOWN ///
+		if ((_body->GetAngle() > 135 / DEG && _body->GetAngle() < 225 / DEG) 
+			|| (_body->GetAngle() < -135 / DEG && _body->GetAngle() > -225 / DEG)) {
+			velocity.x = 0;
+			velocity.y += _acc;
+			velocity.x = -(velocity.x * cos(_body->GetAngle()) - velocity.y * sin(_body->GetAngle()));
+		}
+
+		/// RIGHT ///
+		if ((_body->GetAngle() > 45 / DEG && _body->GetAngle() < 135 / DEG) 
+			|| (_body->GetAngle() < -225 / DEG && _body->GetAngle() > -315 / DEG)) {
+			velocity.y = 0;
+			velocity.x += _acc;
+			velocity.y = velocity.x * cos(_body->GetAngle()) + velocity.y * sin(_body->GetAngle());
+			velocity.y *= -1;
+		}
+
+		/// LEFT ///
+		if ((_body->GetAngle() < -45 / DEG && _body->GetAngle() > -135 / DEG) 
+			|| (_body->GetAngle() > 225 / DEG && _body->GetAngle() < 315 / DEG)) {
+			velocity.y = 0;
+			velocity.x -= _acc;
+			velocity.y = velocity.x * cos(_body->GetAngle()) + velocity.y * sin(_body->GetAngle());
 		}
 	}
 
-	if (_direction == DOWN && _speed > -MAX_SPEED) {
-		if (_speed > 0) {
-			_speed -= _dec;
+	if (_direction == DOWN && velocity.y < MAX_SPEED / SCALE) {
+		/// UP ///
+		if (_body->GetAngle() < 45 / DEG && _body->GetAngle() > -45 / DEG) {
+			velocity.x = 0;
+			velocity.y += _acc;
+			velocity.x = velocity.x * cos(_body->GetAngle()) - velocity.y * sin(_body->GetAngle());
 		}
-		else {
-			_speed -= _acc;
-		}
-	}
 
-	if (_direction == STOP) {
-		if (_speed > 0) {
-			_speed -= _dec;
+		/// DOWN ///
+		if ((_body->GetAngle() > 135 / DEG && _body->GetAngle() < 225 / DEG)
+			|| (_body->GetAngle() < -135 / DEG && _body->GetAngle() > -225 / DEG)) {
+			velocity.x = 0;
+			velocity.y -= _acc;
+			velocity.x = -(velocity.x * cos(_body->GetAngle()) - velocity.y * sin(_body->GetAngle()));
 		}
-		else if (_speed < 0) {
-			_speed += _dec;
-		}
-		else {
-			_speed = 0;
-		}
-	}
 
-	if (_direction == RIGHT) {
-		_angle += TURN_SPEED * _speed / MAX_SPEED;
+		/// RIGHT ///
+		if ((_body->GetAngle() > 45 / DEG && _body->GetAngle() < 135 / DEG)
+			|| (_body->GetAngle() < -225 / DEG && _body->GetAngle() > -315 / DEG)) {
+			velocity.y = 0;
+			velocity.x -= _acc;
+			velocity.y = velocity.x * cos(_body->GetAngle()) + velocity.y * sin(_body->GetAngle());
+			velocity.y *= -1;
+		}
+
+		/// LEFT ///
+		if ((_body->GetAngle() < -45 / DEG && _body->GetAngle() > -135 / DEG)
+			|| (_body->GetAngle() > 225 / DEG && _body->GetAngle() < 315 / DEG)) {
+			velocity.y = 0;
+			velocity.x += _acc;
+			velocity.y = velocity.x * cos(_body->GetAngle()) + velocity.y * sin(_body->GetAngle());
+		}
 	}
 
 	if (_direction == LEFT) {
-		_angle -= TURN_SPEED * _speed / MAX_SPEED;
+		_body->SetTransform(_body->GetPosition(), _body->GetAngle() - 0.2 / DEG);
 	}
 
-	_x += sin(_angle) * _speed;
-	_y -= cos(_angle) * _speed;
+	if (_direction == RIGHT) {
+		_body->SetTransform(_body->GetPosition(), _body->GetAngle() + 0.2 / DEG);
+	}
 
+	if (_direction == STOP) {
+		velocity.x = 0;
+		velocity.y = 0;
+	}
+
+	_body->SetLinearVelocity(velocity);
+
+	b2Vec2 pos = _body->GetPosition();
+	_x = pos.x * SCALE;
+	_y = pos.y * SCALE;
 	_sprite.setPosition(_x, _y);
-	_sprite.setRotation(_angle * 180 / PI);
+	_sprite.setRotation(_body->GetAngle() * DEG);
 
 	checkBorder();
 }
@@ -137,7 +206,16 @@ sf::Sprite Car::getSprite()
 	return _sprite;
 }
 
+inline Direction Car::getDirection()
+{
+	return _direction;
+}
+
 inline void Car::setPosition(float x, float y) {
 	_x = x;
 	_y = y;
+}
+
+inline void Car::setSpeed(float speed) {
+	_speed = speed;
 }
