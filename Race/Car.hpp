@@ -22,15 +22,14 @@ private:
 	float _acc, _dec;
 	Direction _direction;
 
-	void checkBorder();
-
+	void checkBorder() override;
 public:
 
 	Car(sf::Sprite sprite, b2World& world);
 
 	void setDirection(Direction direction);
 
-	void Update();
+	void Update() override;
 
 	float getX();
 	float getY();
@@ -49,7 +48,7 @@ Car::Car(sf::Sprite sprite, b2World& world) {
 	_y = 600;
 	_speed = _angle = 0;
 	_acc = 0.002;
-	_dec = 0.003;
+	_dec = 0.004;
 	_direction = STOP;
 
 	_shape.SetAsBox(CAR_SIDE / 2 / SCALE, CAR_SIDE / 2 / SCALE);
@@ -123,7 +122,7 @@ void Car::Update() {
 		}
 	}
 
-	if (_direction == DOWN && velocity.y < MAX_SPEED / SCALE) {
+	if (_direction == DOWN && velocity.y < MAX_SPEED /2/ SCALE) {
 		/// UP ///
 		if (_body->GetAngle() < 45 / DEG && _body->GetAngle() > -45 / DEG) {
 			velocity.x = 0;
@@ -158,7 +157,7 @@ void Car::Update() {
 	}
 
 	if (_direction == LEFT) {
-		_body->SetTransform(_body->GetPosition(), _body->GetAngle() - 0.2 / DEG);
+		_body->SetTransform(b2Vec2(_body->GetPosition().x * TURN_SPEED/SCALE, _body->GetPosition().y), _body->GetAngle() - 0.2 / DEG);
 	}
 
 	if (_direction == RIGHT) {

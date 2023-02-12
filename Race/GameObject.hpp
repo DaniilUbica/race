@@ -10,4 +10,7 @@ protected:
 	b2BodyDef _bodyDef;
 public:
 	b2Body* _body;
+
+	virtual void checkBorder() = 0;
+	virtual void Update() = 0;
 };
