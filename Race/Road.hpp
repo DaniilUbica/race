@@ -1,6 +1,5 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <box2d/box2d.h>
 #include <cmath>
 
 #include "Globals.h"
@@ -14,7 +13,7 @@ private:
 	Barrier barrier;
 
 public:
-	Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car, b2World& world);
+	Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car);
 
 	void Update(Car* car);
 	Barrier getBarrier();
@@ -22,7 +21,7 @@ public:
 	std::pair<sf::Sprite, sf::Sprite> getSprite();
 };
 
-Road::Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car, b2World& world) {
+Road::Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car) {
 	srand(time(NULL));
 
 	_sprite = sprite;
@@ -35,7 +34,7 @@ Road::Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car, b2World& worl
 	float y = rand() % int((car->getY() - 2000)) + (car->getY() - 1000);
 
 	barrier.setSprite(spriteBarrier);
-	barrier.setBarrier(x, y, world, 1);
+	barrier.setBarrier(x, y);
 }
 
 void Road::Update(Car* car) {
