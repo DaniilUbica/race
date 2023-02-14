@@ -16,8 +16,6 @@ enum Direction {
 
 class Car : public GameObject {
 private:
-	float _x, _y;
-	float _speed, _angle;
 	float _acc, _dec;
 	Direction _direction;
 
@@ -31,15 +29,24 @@ public:
 
 	void Update();
 
-	float getX();
-	float getY();
-	float getAngle();
-	float getSpeed();
+	float getX() override;
+	float getY() override;
+
+	void setX(float x) override;
+	void setY(float y) override;
+
+	float getAngle() override;
+
+	float getSpeed() override;
+
+	float getMass() override;
+
+	void setSpeed(float speed);
+
 	sf::Sprite getSprite();
 	Direction getDirection();
 
 	void setPosition(float x, float y);
-	void setSpeed(float speed);
 };
 
 Car::Car(sf::Sprite sprite) {
@@ -47,8 +54,9 @@ Car::Car(sf::Sprite sprite) {
 	_x = 60;
 	_y = 600;
 	_speed = _angle = 0;
-	_acc = 0.0002;
-	_dec = 0.0003;
+	_mass = 2.0;
+	_acc = 0.00002;
+	_dec = 0.00003;
 	_direction = STOP;
 
 	_sprite.setPosition(_x, _y);
@@ -98,10 +106,10 @@ void Car::Update() {
 	}
 
 	if (_direction == STOP) {
-		if (_speed - _dec > 0) {
+		if (_speed - _dec / 2 > 0) {
 			_speed -= _dec;
 		}
-		else if (_speed + _dec < 0) {
+		else if (_speed + _dec / 2 < 0) {
 			_speed += _dec;
 		}
 		else {
@@ -127,6 +135,16 @@ float Car::getY()
 	return _y;
 }
 
+inline void Car::setX(float x)
+{
+	_x = x;
+}
+
+inline void Car::setY(float y)
+{
+	_y = y;
+}
+
 float Car::getAngle()
 {
 	return _angle;
@@ -135,6 +153,15 @@ float Car::getAngle()
 inline float Car::getSpeed()
 {
 	return _speed;
+}
+
+inline float Car::getMass()
+{
+	return _mass;
+}
+
+void Car::setSpeed(float speed) {
+	_speed = speed;
 }
 
 sf::Sprite Car::getSprite()
@@ -150,8 +177,4 @@ inline Direction Car::getDirection()
 inline void Car::setPosition(float x, float y) {
 	_x = x;
 	_y = y;
-}
-
-inline void Car::setSpeed(float speed) {
-	_speed = speed;
 }

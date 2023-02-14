@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include <deque>
 
 #include "Globals.h"
 #include "Car.hpp"
@@ -29,7 +28,21 @@ void controllPlayer(Car* player) {
 }
 
 void checkCollision(GameObject* obj1, GameObject* obj2) {
- 
+    float x1, y1, x2, y2;
+
+    x1 = sin(obj1->getAngle()) * MAX_SPEED;
+    y1 = cos(obj1->getAngle()) * MAX_SPEED;
+
+    x2 = sin(obj2->getAngle()) * MAX_SPEED;
+    y2 = cos(obj2->getAngle()) * MAX_SPEED;
+
+    sf::Sprite sprite1 = obj1->getSprite();
+    sf::Sprite sprite2 = obj2->getSprite();
+
+    if (sprite1.getGlobalBounds().intersects(sprite2.getGlobalBounds())) {
+        obj1->setSpeed(-obj1->getSpeed() / 2);
+        obj2->setSpeed(-obj2->getSpeed() / 2);
+    }
 }
 
 int main() {
@@ -90,6 +103,7 @@ int main() {
     }
 
     delete player;
+    delete b;
 
     return 0;
 }
