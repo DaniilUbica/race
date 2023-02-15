@@ -39,17 +39,36 @@ void checkCollision(GameObject* obj1, GameObject* obj2) {
     sf::Sprite sprite1 = obj1->getSprite();
     sf::Sprite sprite2 = obj2->getSprite();
 
+    float dx = (sprite2.getPosition().x - sprite1.getPosition().x)/10;
+    float angle = obj1->getSpeed() * dx / (MAX_SPEED * 10);
+
     if (sprite1.getGlobalBounds().intersects(sprite2.getGlobalBounds())) {
-        obj1->setSpeed(-obj1->getSpeed() / 2);
-        obj2->setSpeed(-obj2->getSpeed() / 2);
+        if (obj1->getMass() > obj2->getMass()) {
+            if (obj1->getY() > obj2->getY()) {
+                obj2->setSpeed(obj1->getSpeed());
+            }
+            if (obj1->getY() < obj2->getY() && obj1->getSpeed() >= 0) {
+                obj2->setSpeed(-obj1->getSpeed());
+            }
+            if (obj1->getY() < obj2->getY() && obj1->getSpeed() < 0) {
+                obj2->setSpeed(obj1->getSpeed());
+            }
+
+            if (dx < 0) {
+                obj2->setAngle(obj2->getAngle() - (TURN_SPEED/100));
+            }
+            if (dx > 0) {
+                obj2->setAngle(obj2->getAngle() + (TURN_SPEED / 100));
+            }
+        }
     }
 }
 
 int main() {
     Barrier* b = new Barrier;
-    b->setBarrier(60, 0);
-    Barrier b2;
-    b2.setBarrier(200, 800);
+    b->setBarrier(80, 600);
+    Barrier* b2 = new Barrier;
+    b2->setBarrier(80, 700);
 
     textureRoad.loadFromFile("Assets/road.jpg");
     textureCar.loadFromFile("Assets/car.png");
@@ -65,7 +84,7 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Race it");
 
     b->setSprite(spriteBarrier);
-    b2.setSprite(spriteBarrier);
+    b2->setSprite(spriteBarrier);
 
     while (window.isOpen())
     {
@@ -83,8 +102,10 @@ int main() {
         player->Update();
         road.Update(player);
         b->Update();
-        b2.Update();
+        b2->Update();
         checkCollision(player, b);
+        checkCollision(player, b2);
+        checkCollision(b, b2);
 
         view.setCenter(SCREEN_WIDTH / 2, player->getY());
 
@@ -94,7 +115,7 @@ int main() {
         window.draw(road.getSprite().second);
         window.draw(player->getSprite());
         window.draw(b->getSprite());
-        window.draw(b2.getSprite());
+        window.draw(b2->getSprite());
 
         //std::cout << player->getX() << " " << player->getY()
             //<< " " << player->getSpeed() << " " << road.getSprite().first.getPosition().y << road.getSprite().second.getPosition().y << "\n";

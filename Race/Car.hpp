@@ -19,34 +19,25 @@ private:
 	float _acc, _dec;
 	Direction _direction;
 
-	void checkBorder();
-
 public:
 
 	Car(sf::Sprite sprite);
-
-	void setDirection(Direction direction);
-
 	void Update();
 
 	float getX() override;
 	float getY() override;
-
-	void setX(float x) override;
-	void setY(float y) override;
-
 	float getAngle() override;
-
 	float getSpeed() override;
-
 	float getMass() override;
-
-	void setSpeed(float speed);
-
 	sf::Sprite getSprite();
 	Direction getDirection();
 
+	void setX(float x) override;
+	void setY(float y) override;
+	void setSpeed(float speed);
+	void setAngle(float angle) override;
 	void setPosition(float x, float y);
+	void setDirection(Direction direction);
 };
 
 Car::Car(sf::Sprite sprite) {
@@ -64,18 +55,6 @@ Car::Car(sf::Sprite sprite) {
 
 void Car::setDirection(Direction direction) {
 	_direction = direction;
-}
-
-inline void Car::checkBorder() {
-	if (_x >= SCREEN_WIDTH + CAR_SIDE) {
-		_x = _x - SCREEN_WIDTH - CAR_SIDE;
-		_sprite.setPosition(_x, _y);
-	}
-
-	if (_x <= -CAR_SIDE) {
-		_x = _x + SCREEN_WIDTH + CAR_SIDE;
-		_sprite.setPosition(_x, _y);
-	}
 }
 
 void Car::Update() {
@@ -106,10 +85,10 @@ void Car::Update() {
 	}
 
 	if (_direction == STOP) {
-		if (_speed - _dec / 2 > 0) {
+		if (_speed - _dec > 0) {
 			_speed -= _dec;
 		}
-		else if (_speed + _dec / 2 < 0) {
+		else if (_speed + _dec < 0) {
 			_speed += _dec;
 		}
 		else {
@@ -122,7 +101,7 @@ void Car::Update() {
 
 	_sprite.setRotation(_angle * 180 / PI);
 	_sprite.setPosition(_x, _y);
-	checkBorder();
+	checkBorders();
 }
 
 float Car::getX()
@@ -162,6 +141,10 @@ inline float Car::getMass()
 
 void Car::setSpeed(float speed) {
 	_speed = speed;
+}
+
+inline void Car::setAngle(float angle) {
+	_angle = angle;
 }
 
 sf::Sprite Car::getSprite()
