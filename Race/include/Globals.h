@@ -11,6 +11,6 @@ const int CAR_SIDE = 45;
 
 const int BARRIERS_AMOUNT = 5;
 
-const float MAX_SPEED = 0.5;
-const float TURN_SPEED = 0.01;
-const float PI = 3.141592;
+const float MAX_SPEED = 0.5f;
+const float TURN_SPEED = 0.015f;
+const float PI = 3.141592f;

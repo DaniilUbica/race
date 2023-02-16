@@ -2,9 +2,9 @@
 #include <iostream>
 
 #include "Globals.h"
-#include "Car.hpp"
-#include "Road.hpp"
-#include "Barrier.hpp"
+#include "Car.h"
+#include "Road.h"
+#include "Barrier.h"
 
 sf::Texture textureCar;
 sf::Texture textureRoad;
@@ -39,11 +39,11 @@ void checkCollision(GameObject* obj1, GameObject* obj2) {
     sf::Sprite sprite1 = obj1->getSprite();
     sf::Sprite sprite2 = obj2->getSprite();
 
-    float dx = (sprite2.getPosition().x - sprite1.getPosition().x)/10;
+    float dx = (sprite2.getPosition().x - sprite1.getPosition().x) / 10;
     float angle = obj1->getSpeed() * dx / (MAX_SPEED * 10);
 
     if (sprite1.getGlobalBounds().intersects(sprite2.getGlobalBounds())) {
-        if (obj1->getMass() > obj2->getMass()) {
+        if (obj1->getMass() >= obj2->getMass()) {
             if (obj1->getY() > obj2->getY()) {
                 obj2->setSpeed(obj1->getSpeed());
             }
@@ -54,10 +54,22 @@ void checkCollision(GameObject* obj1, GameObject* obj2) {
                 obj2->setSpeed(obj1->getSpeed());
             }
 
-            if (dx < 0) {
-                obj2->setAngle(obj2->getAngle() - (TURN_SPEED/100));
+            if (dx < 0 || (dx < 0 && obj1->getY() > obj2->getY())) {
+                obj2->setAngle(obj2->getAngle() - (TURN_SPEED / 100));
             }
-            if (dx > 0) {
+            if (dx > 0 || (dx > 0 && obj1->getY() > obj2->getY())) {
+                obj2->setAngle(obj2->getAngle() + (TURN_SPEED / 100));
+            }
+        }
+
+        if (obj1->getMass() < obj2->getMass()) {
+            obj2->setSpeed(obj1->getSpeed() / 10 * obj2->getMass());
+            obj1->setSpeed(-obj1->getSpeed() / obj1->getMass());
+
+            if (dx < 0 || (dx < 0 && obj1->getY() > obj2->getY())) {
+                obj2->setAngle(obj2->getAngle() - (TURN_SPEED / 100));
+            }
+            if (dx > 0 || (dx > 0 && obj1->getY() > obj2->getY())) {
                 obj2->setAngle(obj2->getAngle() + (TURN_SPEED / 100));
             }
         }
@@ -66,9 +78,9 @@ void checkCollision(GameObject* obj1, GameObject* obj2) {
 
 int main() {
     Barrier* b = new Barrier;
-    b->setBarrier(80, 600);
+    b->setBarrier(300, 400);
     Barrier* b2 = new Barrier;
-    b2->setBarrier(80, 700);
+    b2->setBarrier(300, 300);
 
     textureRoad.loadFromFile("Assets/road.jpg");
     textureCar.loadFromFile("Assets/car.png");
@@ -106,6 +118,7 @@ int main() {
         checkCollision(player, b);
         checkCollision(player, b2);
         checkCollision(b, b2);
+        checkCollision(b2, b);
 
         view.setCenter(SCREEN_WIDTH / 2, player->getY());
 
@@ -117,14 +130,12 @@ int main() {
         window.draw(b->getSprite());
         window.draw(b2->getSprite());
 
-        //std::cout << player->getX() << " " << player->getY()
-            //<< " " << player->getSpeed() << " " << road.getSprite().first.getPosition().y << road.getSprite().second.getPosition().y << "\n";
-
         window.display();
     }
 
     delete player;
     delete b;
+    delete b2;
 
     return 0;
 }

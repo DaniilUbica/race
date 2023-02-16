@@ -1,25 +1,4 @@
-#pragma once
-#include <SFML/Graphics.hpp>
-#include <cmath>
-
-#include "Globals.h"
-#include "Car.hpp"
-#include "Barrier.hpp"
-
-class Road {
-private:
-	sf::Sprite _sprite;
-	sf::Sprite _sprite2;
-	Barrier barrier;
-
-public:
-	Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car);
-
-	void Update(Car* car);
-	Barrier getBarrier();
-
-	std::pair<sf::Sprite, sf::Sprite> getSprite();
-};
+#include "Road.h"
 
 Road::Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car) {
 	srand(time(NULL));
@@ -34,7 +13,7 @@ Road::Road(sf::Sprite& sprite, sf::Sprite spriteBarrier, Car* car) {
 	float y = rand() % int((car->getY() - 2000)) + (car->getY() - 1000);
 
 	barrier.setSprite(spriteBarrier);
-	barrier.setBarrier(x, y);
+	barrier.setBarrier(float(x), float(y));
 }
 
 void Road::Update(Car* car) {
